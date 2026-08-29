@@ -198,17 +198,34 @@ chmod 0600 /etc/recitopia/llm
 ```http
 GET  /api/health
 GET  /api/catalogue
+GET  /api/cookbooks
 
+POST /api/cookbook-imports/archive?cookbookId=&sourcePath=
+POST /api/cookbook-imports/images
+POST /api/cookbook-imports/:id/ocr
+GET  /api/cookbook-imports/:id/progress
+POST /api/cookbook-imports/:id/cancel
+
+GET  /api/cookbook-pages/:id
+GET  /api/cookbook-pages/:id/image
+GET  /api/cookbook-pages/:id/text
+POST /api/cookbook-pages/:id/accept-content
+GET  /api/cookbooks/:id/blocks
+GET  /api/cookbook-content-blocks/:id
+
+POST /api/cookbook-recipe-drafts
 POST /api/imports/images
-POST /api/imports/cookbook-archive
 GET  /api/imports/:id
 PUT  /api/imports/:id/draft
 POST /api/imports/:id/commit
 
-POST /api/cookbook-recipe-drafts
-
 GET  /api/recipes
+GET  /api/recipes/:id
 PUT  /api/recipes/:id
+POST /api/recipes/:id/made
+
+POST /api/pipeline-diagnostics/cookbook
+GET  /api/pipeline-diagnostics/:job/progress
 ```
 
 ## Artifacts
@@ -220,6 +237,31 @@ data/imports/<import-id>/page-crop.json
 data/imports/<import-id>/mapper-request.json
 data/imports/cookbook-images/<sha256>.<ext>
 data/imports/cookbook-archives/<import-id>.tar
+```
+
+## Sample
+
+Public domain source for trying the pipeline end to end: *Famous Old Receipts*
+(Smith, 1908), archive.org item `famousoldreceipt00smit`, 392 pages,
+`NOT_IN_COPYRIGHT`.
+
+```sh
+SAMPLE_FIRST_PAGE=1 SAMPLE_LAST_PAGE=24 ./scripts/fetch-sample-cookbook.sh
+```
+
+```sh
+curl -sS -X POST "$API/api/cookbooks" \
+  -H 'content-type: application/json' \
+  -d '{"id":"famousoldreceipt00smit","title":"Famous Old Receipts","authors":["Jacqueline Harrison Smith"],"year":1908}'
+
+curl -sS -X POST \
+  -H 'content-type: application/x-tar' \
+  --data-binary @data/sample/famousoldreceipt00smit.tar \
+  "$API/api/cookbook-imports/archive?cookbookId=famousoldreceipt00smit&sourcePath=data/sample/famousoldreceipt00smit"
+
+curl -sS -X POST "$API/api/cookbook-imports/$IMPORT_ID/ocr"
+curl -sS "$API/api/cookbook-imports/$IMPORT_ID/progress"
+curl -sS "$API/api/cookbooks/famousoldreceipt00smit/blocks"
 ```
 
 ## Tests
