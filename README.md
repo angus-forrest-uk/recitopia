@@ -34,6 +34,15 @@ apps/api-rs      Rust, Axum, DuckDB
 tools/ocr        PaddleOCR adapter, FastAPI server, page-edge crop
 tools/ml         LLM provider layer and schema mappers
 nix              package and NixOS module
+scripts          setup and sample helpers
+```
+
+```
+scripts/init-db.sh               create a database from the fixture schema
+scripts/setup-ocr-venv.sh        build the PaddleOCR virtualenv
+scripts/fetch-sample-cookbook.sh fetch the public domain sample and render pages
+scripts/showcase-page.sh         one page through OCR and the LLM mapper
+scripts/build-release-tar.sh     package the API for deployment
 ```
 
 ## Client
@@ -95,13 +104,21 @@ services.recitopia-api = {
 
 ## OCR service
 
+Needs Python 3.12. PaddlePaddle publishes no wheels for 3.13 or later.
+
 ```sh
-python -m venv /var/lib/recitopia/ocr-venv
-/var/lib/recitopia/ocr-venv/bin/python -m pip install \
-  paddlepaddle-gpu==3.2.0 -i https://www.paddlepaddle.org.cn/packages/stable/cu118/
-/var/lib/recitopia/ocr-venv/bin/python -m pip install "paddleocr[all]"
-/var/lib/recitopia/ocr-venv/bin/python -m pip install \
-  numpy pillow opencv-python-headless fastapi uvicorn
+./scripts/setup-ocr-venv.sh ~/.local/share/recitopia/ocr-venv
+```
+
+```sh
+RECITOPIA_OCR_PYTHON=~/.local/share/recitopia/ocr-venv/bin/python
+```
+
+On NixOS `libcuda.so.1` is not on the default linker path, so the OCR process
+needs it added. The NixOS module sets this already.
+
+```sh
+LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/current-system/sw/lib:/run/current-system/sw/share/nix-ld/lib
 ```
 
 ```sh
@@ -248,17 +265,27 @@ Public domain source for trying the pipeline end to end: *Famous Old Receipts*
 (Smith, 1908), archive.org item `famousoldreceipt00smit`, 392 pages,
 `NOT_IN_COPYRIGHT`.
 
+One page through OCR and the LLM mapper, no database or API needed:
+
+```sh
+./scripts/fetch-sample-cookbook.sh
+export RECITOPIA_OCR_PYTHON=~/.local/share/recitopia/ocr-venv/bin/python
+export RECITOPIA_LLM_PROVIDER=deepseek RECITOPIA_LLM_API_KEY=...
+./scripts/showcase-page.sh 45
+```
+
+Whole import through the API:
+
 ```sh
 ./scripts/init-db.sh data/recitopia.duckdb
 duckdb data/recitopia.duckdb -c \
   "insert into authors values ('jacqueline-harrison-smith','Jacqueline Harrison Smith',null)"
-```
-
-```sh
 SAMPLE_FIRST_PAGE=1 SAMPLE_LAST_PAGE=24 ./scripts/fetch-sample-cookbook.sh
 ```
 
 ```sh
+API=http://127.0.0.1:8077
+
 curl -sS -X POST "$API/api/cookbooks" \
   -H 'content-type: application/json' \
   -d '{"id":"famousoldreceipt00smit","title":"Famous Old Receipts","authorIds":["jacqueline-harrison-smith"],"publishedYear":1908,"publisher":"J. Winston"}'
@@ -266,12 +293,15 @@ curl -sS -X POST "$API/api/cookbooks" \
 curl -sS -X POST \
   -H 'content-type: application/x-tar' \
   --data-binary @data/sample/famousoldreceipt00smit.tar \
-  "$API/api/cookbook-imports/archive?cookbookId=famousoldreceipt00smit&sourcePath=data/sample/famousoldreceipt00smit"
+  "$API/api/cookbook-imports/archive?cookbookId=famousoldreceipt00smit&sourcePath=$PWD/data/sample/famousoldreceipt00smit"
 
 curl -sS -X POST "$API/api/cookbook-imports/$IMPORT_ID/ocr"
 curl -sS "$API/api/cookbook-imports/$IMPORT_ID/progress"
 curl -sS "$API/api/cookbooks/famousoldreceipt00smit/blocks"
 ```
+
+A cookbook is rejected unless `authorIds` is non-empty, and there is no author
+endpoint, so seed the author directly as above.
 
 The OCR stage needs `RECITOPIA_OCR_PYTHON`. Without it the whole import fails
 with `OCR produced no usable page text`; it does not fall back.
