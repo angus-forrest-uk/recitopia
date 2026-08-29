@@ -37,7 +37,7 @@ count=$(find "$OUT" -maxdepth 1 -name 'page-*.png' | wc -l | tr -d ' ')
 [ "$count" -gt 0 ] || die "pdftoppm produced no pages"
 
 tar="$OUT.tar"
-tar -cf "$tar" -C "$OUT" $(cd "$OUT" && ls page-*.png)
+( cd "$OUT" && tar -cf "$tar" page-*.png )
 
 log "$count pages in $OUT"
 log "archive $tar"
@@ -47,7 +47,7 @@ API="\${RECITOPIA_API_URL:-http://127.0.0.1:8077}"
 
 curl -sS -X POST "\$API/api/cookbooks" \\
   -H 'content-type: application/json' \\
-  -d '{"id":"$ITEM","title":"Famous Old Receipts","authors":["Jacqueline Harrison Smith"],"year":1908}'
+  -d '{"id":"$ITEM","title":"Famous Old Receipts","authorIds":["jacqueline-harrison-smith"],"publishedYear":1908}'
 
 curl -sS -X POST \\
   -H 'content-type: application/x-tar' \\

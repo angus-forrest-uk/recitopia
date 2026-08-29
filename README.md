@@ -75,9 +75,9 @@ nix --extra-experimental-features 'nix-command flakes' build .#recitopia-api-rus
 
 On NixOS `cargo build` fails with `linker \`cc\` not found`; use the flake.
 
-The database schema is not created by this repo. `/api/health` answers on an
-empty DuckDB, but `/api/catalogue` and the import routes return 503 until the
-store is populated.
+There is no migration system. `scripts/init-db.sh` builds a database from the
+API's test fixture schema, which is the only schema in the repository. Without
+it `/api/health` answers but `/api/catalogue` and the import routes return 503.
 
 ```nix
 services.recitopia-api = {
@@ -249,13 +249,19 @@ Public domain source for trying the pipeline end to end: *Famous Old Receipts*
 `NOT_IN_COPYRIGHT`.
 
 ```sh
+./scripts/init-db.sh data/recitopia.duckdb
+duckdb data/recitopia.duckdb -c \
+  "insert into authors values ('jacqueline-harrison-smith','Jacqueline Harrison Smith',null)"
+```
+
+```sh
 SAMPLE_FIRST_PAGE=1 SAMPLE_LAST_PAGE=24 ./scripts/fetch-sample-cookbook.sh
 ```
 
 ```sh
 curl -sS -X POST "$API/api/cookbooks" \
   -H 'content-type: application/json' \
-  -d '{"id":"famousoldreceipt00smit","title":"Famous Old Receipts","authors":["Jacqueline Harrison Smith"],"year":1908}'
+  -d '{"id":"famousoldreceipt00smit","title":"Famous Old Receipts","authorIds":["jacqueline-harrison-smith"],"publishedYear":1908,"publisher":"J. Winston"}'
 
 curl -sS -X POST \
   -H 'content-type: application/x-tar' \
@@ -266,6 +272,9 @@ curl -sS -X POST "$API/api/cookbook-imports/$IMPORT_ID/ocr"
 curl -sS "$API/api/cookbook-imports/$IMPORT_ID/progress"
 curl -sS "$API/api/cookbooks/famousoldreceipt00smit/blocks"
 ```
+
+The OCR stage needs `RECITOPIA_OCR_PYTHON`. Without it the whole import fails
+with `OCR produced no usable page text`; it does not fall back.
 
 ## Tests
 
