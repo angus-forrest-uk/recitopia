@@ -11,7 +11,7 @@ image set | pdf
   -> page classify                                  -> CookbookPage.pageKind
   -> section build                                  -> CookbookSection
   -> block split                                    -> CookbookContentBlock
-  -> llm map            tools/ml/deepseek_mapper.py -> RecipeDraft
+  -> llm map            tools/ml/llm_mapper.py -> RecipeDraft
   -> validate                                       -> issues[]
   -> review                                         -> extractionStatus
   -> commit                                         -> Recipe
@@ -112,7 +112,7 @@ POST /ocr/batch
 ## LLM provider
 
 ```
-anthropic   google   openai   openrouter   deepseek
+anthropic   google   openai   openrouter   llm
 ```
 
 No default. `RECITOPIA_LLM_PROVIDER` must be set.
@@ -127,7 +127,7 @@ RECITOPIA_LLM_PROVIDER=anthropic     ANTHROPIC_API_KEY=
 RECITOPIA_LLM_PROVIDER=google        GOOGLE_API_KEY=      # or GEMINI_API_KEY
 RECITOPIA_LLM_PROVIDER=openai        OPENAI_API_KEY=
 RECITOPIA_LLM_PROVIDER=openrouter    OPENROUTER_API_KEY=
-RECITOPIA_LLM_PROVIDER=deepseek      DEEPSEEK_API_KEY=
+RECITOPIA_LLM_PROVIDER=llm      RECITOPIA_LLM_API_KEY=
 ```
 
 ```sh
@@ -140,18 +140,27 @@ RECITOPIA_LLM_HTTP_REFERER=
 RECITOPIA_LLM_APP_TITLE=
 ```
 
+```sh
+RECITOPIA_LLM_COOKBOOK_MAX_TOKENS=16000
+RECITOPIA_LLM_COOKBOOK_PAGES_PER_REQUEST=4
+RECITOPIA_LLM_COOKBOOK_PAGE_OVERLAP=1
+RECITOPIA_LLM_COOKBOOK_PARALLELISM=4
+RECITOPIA_LLM_COOKBOOK_SECTION_CHAR_BUDGET=28000
+RECITOPIA_VERBOSE_LLM_LOGS=true
+```
+
 ```
 anthropic    claude-sonnet-5              https://api.anthropic.com
 google       gemini-2.5-flash             https://generativelanguage.googleapis.com
 openai       gpt-5                        https://api.openai.com/v1
 openrouter   anthropic/claude-sonnet-5    https://openrouter.ai/api/v1
-deepseek     deepseek-v4-flash            https://api.deepseek.com
+llm     llm-v4-flash            https://api.llm.com
 ```
 
 ```sh
 tools/ml/llm_provider.py            provider registry, request build, response parse
-tools/ml/deepseek_mapper.py         single recipe -> Recipe json
-tools/ml/deepseek_cookbook_mapper.py  whole cookbook -> recipes + content blocks
+tools/ml/llm_mapper.py         single recipe -> Recipe json
+tools/ml/llm_cookbook_mapper.py  whole cookbook -> recipes + content blocks
 ```
 
 ## Environment
@@ -170,8 +179,8 @@ RECITOPIA_PAGE_CROP_PYTHON=/var/lib/recitopia/ocr-venv/bin/python
 RECITOPIA_PAGE_CROP_SCRIPT=tools/ocr/page_crop.py
 RECITOPIA_PAGE_CROP_DISABLED=0
 
-RECITOPIA_LLM_SCRIPT=tools/ml/deepseek_mapper.py
-RECITOPIA_LLM_COOKBOOK_SCRIPT=tools/ml/deepseek_cookbook_mapper.py
+RECITOPIA_LLM_SCRIPT=tools/ml/llm_mapper.py
+RECITOPIA_LLM_COOKBOOK_SCRIPT=tools/ml/llm_cookbook_mapper.py
 RECITOPIA_LLM_PYTHON=python3
 RECITOPIA_LLM_PROVIDER=
 RECITOPIA_LLM_API_KEY=

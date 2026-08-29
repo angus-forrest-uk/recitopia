@@ -199,7 +199,7 @@ describe("CookbookOverview", () => {
           sectionCount: 1,
           contentBlockCount: 1,
           recipeCount: 1,
-          extractionEngine: "deepseek",
+          extractionEngine: "llm",
           currentSectionIndex: null,
           sectionTotal: null,
           currentSectionTitle: null,
@@ -294,7 +294,7 @@ describe("CookbookOverview", () => {
           sectionCount: 2,
           contentBlockCount: 3,
           recipeCount: 2,
-          extractionEngine: "deepseek",
+          extractionEngine: "llm",
           currentSectionIndex: null,
           sectionTotal: null,
           currentSectionTitle: null,
@@ -480,7 +480,7 @@ describe("CookbookOverview", () => {
             sectionCount: 2,
             contentBlockCount: 3,
             recipeCount: 2,
-            extractionEngine: "deepseek",
+            extractionEngine: "llm",
             currentSectionIndex: null,
             sectionTotal: null,
             currentSectionTitle: null,
@@ -575,7 +575,7 @@ describe("CookbookOverview", () => {
             sectionCount: 1,
             contentBlockCount: 1,
             recipeCount: 0,
-            extractionEngine: "deepseek",
+            extractionEngine: "llm",
             currentSectionIndex: null,
             sectionTotal: null,
             currentSectionTitle: null,
@@ -597,7 +597,7 @@ describe("CookbookOverview", () => {
             ocrEngine: "paddleocr:3.7.0:paddleocr3",
             ocrLayoutMode: "columns",
             ocrColumnDetection: "edge-alignment",
-            extractionEngine: "deepseek",
+            extractionEngine: "llm",
             sourceMapSectionCount: 1,
             sourceMapContentBlockCount: 1,
             extractedRecipeCount: 0,
@@ -620,12 +620,12 @@ describe("CookbookOverview", () => {
                 "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/02-source-map-input.json",
               sourceMapOutputPath:
                 "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/03-source-map-output.json",
-              deepseekInputPath:
-                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/04-deepseek-input.json",
-              deepseekOutputPath:
-                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/05-deepseek-output.json",
-              deepseekVerboseDir:
-                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/deepseek/verbose",
+              llmInputPath:
+                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/04-llm-input.json",
+              llmOutputPath:
+                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/05-llm-output.json",
+              llmVerboseDir:
+                "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/llm/verbose",
             },
           }),
           { headers: { "content-type": "application/json" }, status: 200 },
@@ -714,13 +714,13 @@ describe("CookbookOverview", () => {
     );
     expect(await screen.findByText("Introduction page check found 1 issue.")).toBeInTheDocument();
     expect(await screen.findByText("Needs review")).toBeInTheDocument();
-    expect(await screen.findByText("DeepSeek input")).toBeInTheDocument();
+    expect(await screen.findByText("LLM input")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/pipeline-diagnostics/diagnostic-intro-test/introduction-page",
     );
     expect(
       await screen.findByText(
-        "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/04-deepseek-input.json",
+        "/var/lib/recitopia/imports/diagnostics/diagnostic-intro-test/introduction-page/04-llm-input.json",
       ),
     ).toBeInTheDocument();
   });
@@ -734,8 +734,8 @@ describe("CookbookOverview", () => {
           JSON.stringify({
             importId: "diagnostic-test",
             state: "running",
-            stage: "deepseek_section",
-            message: "Running DeepSeek extraction against real cookbook pages.",
+            stage: "llm_section",
+            message: "Running LLM extraction against real cookbook pages.",
             current: 1,
             total: 1,
             processedCount: 1,

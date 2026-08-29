@@ -2408,9 +2408,9 @@ fn pipeline_failure(operation: &'static str, error: &PipelineError) -> Response 
         "pipeline operation failed"
     );
     match error {
-        PipelineError::DeepSeekNotConfigured => json_error(
+        PipelineError::LlmNotConfigured => json_error(
             StatusCode::SERVICE_UNAVAILABLE,
-            "DeepSeek is not configured",
+            "LLM is not configured",
         ),
         PipelineError::OcrProducedNoText => {
             json_error(StatusCode::BAD_REQUEST, "OCR produced no text")

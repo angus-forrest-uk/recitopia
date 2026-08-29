@@ -921,9 +921,9 @@ function IntroductionPageDiagnosticView({
     ["OCR output", diagnostic.artifacts.ocrOutputPath],
     ["Source-map input", diagnostic.artifacts.sourceMapInputPath],
     ["Source-map output", diagnostic.artifacts.sourceMapOutputPath],
-    ["DeepSeek input", diagnostic.artifacts.deepseekInputPath],
-    ["DeepSeek output", diagnostic.artifacts.deepseekOutputPath],
-    ["DeepSeek verbose", diagnostic.artifacts.deepseekVerboseDir],
+    ["LLM input", diagnostic.artifacts.llmInputPath],
+    ["LLM output", diagnostic.artifacts.llmOutputPath],
+    ["LLM verbose", diagnostic.artifacts.llmVerboseDir],
   ] as const;
 
   return (

@@ -36,12 +36,12 @@ The legacy Zig service is still kept in the repository as a rollback target.
   progress, duplicate-start suppression, cooperative cancel files, and
   cancellation-safe terminal state handling.
 - Persistent PaddleOCR batch calls with subprocess fallback, deterministic
-  source mapping, conservative printed-page interpolation, DeepSeek cookbook
+  source mapping, conservative printed-page interpolation, LLM cookbook
   extraction, and atomic replacement of generated sections, blocks, and
   recipes. Recipe heuristics are intentionally not used as a fallback.
 - Editable photo/text recipe drafts with validation and transactional commit.
 - Bounded cookbook and introduction-page diagnostics that retain every
-  OCR/source-map/DeepSeek input and output artifact.
+  OCR/source-map/LLM input and output artifact.
 - Production Nix packaging and a NixOS service path through
   `services.recitopia-api`.
 - A legacy NixOS shadow service and Go normalized-response comparator for
@@ -76,9 +76,9 @@ Zig equivalents:
 - `RECITOPIA_RUST_IMPORT_DIR`
 - `RECITOPIA_RUST_OCR_SERVER_URL`
 - `RECITOPIA_RUST_OCR_PYTHON` and `RECITOPIA_RUST_OCR_SCRIPT`
-- `RECITOPIA_RUST_DEEPSEEK_PYTHON`
-- `RECITOPIA_RUST_DEEPSEEK_COOKBOOK_SCRIPT`
-- `RECITOPIA_RUST_DEEPSEEK_RECIPE_SCRIPT`
+- `RECITOPIA_RUST_LLM_PYTHON`
+- `RECITOPIA_RUST_RECITOPIA_LLM_COOKBOOK_SCRIPT`
+- `RECITOPIA_RUST_LLM_RECIPE_SCRIPT`
 - `RECITOPIA_RUST_OCR_BATCH_PAGE_LIMIT`
 - `RECITOPIA_RUST_PIPELINE_CONCURRENCY`
 

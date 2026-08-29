@@ -13,7 +13,7 @@ from typing import Any
 TOOLS_ML = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS_ML))
 
-import deepseek_cookbook_mapper as mapper  # noqa: E402
+import llm_cookbook_mapper as mapper  # noqa: E402
 
 
 FIXTURE = TOOLS_ML / "testdata" / "mini_cookbook_payload.json"
@@ -38,12 +38,12 @@ def patched_env(**values: str):
                 os.environ[key] = value
 
 
-class DeepSeekCookbookMapperTests(unittest.TestCase):
+class LLMCookbookMapperTests(unittest.TestCase):
     def test_section_batch_payloads_split_small_chapter(self) -> None:
         payload = load_payload()
         chapter = payload["sections"][1]
 
-        with patched_env(DEEPSEEK_COOKBOOK_PAGES_PER_REQUEST="2", DEEPSEEK_COOKBOOK_PAGE_OVERLAP="0"):
+        with patched_env(RECITOPIA_LLM_COOKBOOK_PAGES_PER_REQUEST="2", RECITOPIA_LLM_COOKBOOK_PAGE_OVERLAP="0"):
             batches = mapper.section_batch_payloads(payload, chapter, 0)
 
         self.assertEqual(2, len(batches))
@@ -81,9 +81,9 @@ class DeepSeekCookbookMapperTests(unittest.TestCase):
     def test_parallel_extraction_merges_in_planned_order(self) -> None:
         payload = load_payload()
         chapter = payload["sections"][1]
-        original_request_deepseek = mapper.request_deepseek
+        original_request_model = mapper.request_model
 
-        def fake_request_deepseek(section_payload: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+        def fake_request_model(section_payload: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
             start = section_payload["section"]["pageStart"]
             time.sleep({3: 0.03, 4: 0.02, 5: 0.01, 6: 0.0}.get(start, 0.0))
             return {
@@ -112,16 +112,16 @@ class DeepSeekCookbookMapperTests(unittest.TestCase):
                 ],
             }
 
-        mapper.request_deepseek = fake_request_deepseek
+        mapper.request_model = fake_request_model
         try:
             with patched_env(
-                DEEPSEEK_COOKBOOK_PAGES_PER_REQUEST="1",
-                DEEPSEEK_COOKBOOK_PAGE_OVERLAP="0",
-                DEEPSEEK_COOKBOOK_PARALLELISM="4",
+                RECITOPIA_LLM_COOKBOOK_PAGES_PER_REQUEST="1",
+                RECITOPIA_LLM_COOKBOOK_PAGE_OVERLAP="0",
+                RECITOPIA_LLM_COOKBOOK_PARALLELISM="4",
             ):
                 result = mapper.extract_sections_parallel(payload, [chapter])
         finally:
-            mapper.request_deepseek = original_request_deepseek
+            mapper.request_model = original_request_model
 
         self.assertEqual(
             ["recipe-page-3", "recipe-page-4", "recipe-page-5", "recipe-page-6"],
@@ -187,7 +187,7 @@ class DeepSeekCookbookMapperTests(unittest.TestCase):
         self.assertEqual([1, 2], [block["position"] for block in normalized["contentBlocks"]])
         self.assertEqual(["paragraph", "paragraph"], [block["kind"] for block in normalized["contentBlocks"]])
 
-    def test_normalize_output_coerces_deepseek_loose_types_for_zig(self) -> None:
+    def test_normalize_output_coerces_llm_loose_types_for_zig(self) -> None:
         payload = load_payload()
         result = {
             "recipes": [
@@ -243,7 +243,7 @@ class DeepSeekCookbookMapperTests(unittest.TestCase):
                     "title": 123,
                     "text": "Context",
                     "confidence": "0.91",
-                    "sourceJson": {"source": "deepseek"},
+                    "sourceJson": {"source": "llm"},
                 }
             ],
         }
@@ -261,7 +261,7 @@ class DeepSeekCookbookMapperTests(unittest.TestCase):
         self.assertEqual(2, recipe["steps"][1]["position"])
         self.assertEqual(12, recipe["sourcePageSpans"][0]["printedPageNumber"])
         self.assertEqual("image-1", recipe["images"][0]["id"])
-        self.assertEqual({"source": "deepseek"}, json.loads(normalized["contentBlocks"][0]["sourceJson"]))
+        self.assertEqual({"source": "llm"}, json.loads(normalized["contentBlocks"][0]["sourceJson"]))
 
     def test_normalize_ingredients_marks_ocr_digit_loss_for_review(self) -> None:
         ingredients = mapper.normalize_ingredients(

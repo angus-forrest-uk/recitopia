@@ -111,7 +111,7 @@ Context blocks must match this shape:
   "title": "Section introduction",
   "text": "Non-recipe contextual text only.",
   "confidence": null,
-  "sourceJson": "{\"source\":\"deepseek-cookbook\"}"
+  "sourceJson": "{\"source\":\"llm-cookbook\"}"
 }
 
 Use the recipe lists, chapter opener pages, page numbers, and multi-page OCR text to infer complete
@@ -136,9 +136,6 @@ quantityReviewStatus="needs_review" with a short quantityReviewReason.
 _verbose_fifo: Any | None = None
 _verbose_sequence = 0
 _verbose_lock = threading.Lock()
-
-
-DeepSeekLengthError = llm_provider.LengthLimitError
 
 
 def log_event(level: str, event: str, **fields: Any) -> None:
@@ -191,13 +188,13 @@ def report_progress(completed: int, total: int, section_title: str) -> None:
 
 
 def verbose_enabled() -> bool:
-    value = os.getenv("RECITOPIA_VERBOSE_DEEPSEEK_LOGS", "true").strip().lower()
+    value = os.getenv("RECITOPIA_VERBOSE_LLM_LOGS", "true").strip().lower()
     return value not in {"0", "false", "no", "off"}
 
 
 def safe_log_name(value: str) -> str:
     safe = re.sub(r"[^a-zA-Z0-9._-]+", "-", value).strip("-._")
-    return safe or "deepseek-log"
+    return safe or "llm-log"
 
 
 def init_verbose_stream() -> None:
@@ -217,7 +214,7 @@ def init_verbose_stream() -> None:
                 json.dumps(
                     {
                         "level": "WARN",
-                        "event": "deepseek_verbose_fifo_unavailable",
+                        "event": "llm_verbose_fifo_unavailable",
                         "fifo": fifo_path,
                         "error": f"{type(exc).__name__}: {exc}",
                     },
@@ -263,7 +260,7 @@ def write_verbose_file(event: str, text: str, **fields: Any) -> str | None:
     except OSError as exc:
         log_event(
             "WARN",
-            "deepseek_verbose_file_write_failed",
+            "llm_verbose_file_write_failed",
             event=event,
             error=f"{type(exc).__name__}: {exc}",
         )
@@ -791,7 +788,7 @@ def section_pages(payload: dict[str, Any], section: dict[str, Any]) -> list[dict
             return payload["pages"]
         log_event(
             "WARN",
-            "deepseek_section_bounds_missing",
+            "llm_section_bounds_missing",
             section_id=section.get("id"),
             section_title=section.get("title"),
         )
@@ -799,7 +796,7 @@ def section_pages(payload: dict[str, Any], section: dict[str, Any]) -> list[dict
     if start is None:
         log_event(
             "WARN",
-            "deepseek_section_start_missing",
+            "llm_section_start_missing",
             section_id=section.get("id"),
             section_title=section.get("title"),
             page_end=end,
@@ -810,7 +807,7 @@ def section_pages(payload: dict[str, Any], section: dict[str, Any]) -> list[dict
     if start > end:
         log_event(
             "WARN",
-            "deepseek_section_bounds_invalid",
+            "llm_section_bounds_invalid",
             section_id=section.get("id"),
             section_title=section.get("title"),
             page_start=start,
@@ -860,7 +857,7 @@ def detected_book_page_number(text: str) -> int | None:
 
 def compact_pages(pages: list[dict[str, Any]], char_budget: int | None = None) -> list[dict[str, Any]]:
     if char_budget is None:
-        char_budget = int(os.getenv("DEEPSEEK_COOKBOOK_SECTION_CHAR_BUDGET", "28000"))
+        char_budget = int(os.getenv("RECITOPIA_LLM_COOKBOOK_SECTION_CHAR_BUDGET", "28000"))
     compact: list[dict[str, Any]] = []
     used = 0
     for page in pages:
@@ -965,9 +962,6 @@ def request_model(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-request_deepseek = request_model
-
-
 def section_batch_payloads(
     payload: dict[str, Any],
     section: dict[str, Any],
@@ -977,8 +971,8 @@ def section_batch_payloads(
     if not pages:
         return []
 
-    page_batch_size = max(1, int(os.getenv("DEEPSEEK_COOKBOOK_PAGES_PER_REQUEST", "4")))
-    overlap = max(0, int(os.getenv("DEEPSEEK_COOKBOOK_PAGE_OVERLAP", "1")))
+    page_batch_size = max(1, int(os.getenv("RECITOPIA_LLM_COOKBOOK_PAGES_PER_REQUEST", "4")))
+    overlap = max(0, int(os.getenv("RECITOPIA_LLM_COOKBOOK_PAGE_OVERLAP", "1")))
     if len(pages) <= page_batch_size:
         batches = [pages]
     else:
@@ -1031,7 +1025,7 @@ def extract_section(payload: dict[str, Any], section: dict[str, Any], position_o
         batch_section = section_payload["section"]
         batch = section_payload.get("batch") or {}
         try:
-            extracted = request_deepseek(section_payload)
+            extracted = request_model(section_payload)
             combined["recipes"].extend(extracted.get("recipes", []))
             combined["contentBlocks"].extend(extracted.get("contentBlocks", []))
         except (urllib.error.URLError, KeyError, RuntimeError, json.JSONDecodeError) as exc:
@@ -1040,7 +1034,7 @@ def extract_section(payload: dict[str, Any], section: dict[str, Any], position_o
             errors.append(error)
             log_event(
                 "WARN",
-                "deepseek_section_mapping_skipped",
+                "llm_section_mapping_skipped",
                 section_id=batch_section.get("id"),
                 section_title=title,
                 batch_index=batch.get("index"),
@@ -1054,7 +1048,7 @@ def extract_section(payload: dict[str, Any], section: dict[str, Any], position_o
 
 
 def cookbook_parallelism() -> int:
-    return max(1, int(os.getenv("DEEPSEEK_COOKBOOK_PARALLELISM", "4")))
+    return max(1, int(os.getenv("RECITOPIA_LLM_COOKBOOK_PARALLELISM", "4")))
 
 
 def extract_sections_parallel(
@@ -1084,7 +1078,7 @@ def extract_sections_parallel(
     max_workers = min(cookbook_parallelism(), len(jobs))
     log_event(
         "INFO",
-        "deepseek_cookbook_queue_start",
+        "llm_cookbook_queue_start",
         sections=len(sections),
         jobs=len(jobs),
         parallelism=max_workers,
@@ -1101,7 +1095,7 @@ def extract_sections_parallel(
                 raise_if_cancelled()
                 job = jobs[next_job_index]
                 next_job_index += 1
-                futures[executor.submit(request_deepseek, job["payload"])] = job
+                futures[executor.submit(request_model, job["payload"])] = job
 
         try:
             submit_more()
@@ -1118,7 +1112,7 @@ def extract_sections_parallel(
                         result = job["result"]
                         log_event(
                             "INFO",
-                            "deepseek_cookbook_queue_item_complete",
+                            "llm_cookbook_queue_item_complete",
                             completed=completed,
                             total=len(jobs),
                             section_id=batch_section.get("id"),
@@ -1135,7 +1129,7 @@ def extract_sections_parallel(
                         job["error"] = error
                         log_event(
                             "WARN",
-                            "deepseek_cookbook_queue_item_failed",
+                            "llm_cookbook_queue_item_failed",
                             completed=completed,
                             total=len(jobs),
                             section_id=batch_section.get("id"),
@@ -1151,7 +1145,7 @@ def extract_sections_parallel(
                 future.cancel()
             log_event(
                 "WARN",
-                "deepseek_cookbook_queue_canceled",
+                "llm_cookbook_queue_canceled",
                 completed=completed,
                 total=len(jobs),
                 queued=len(jobs) - next_job_index,
@@ -1182,7 +1176,7 @@ def extract_sections_parallel(
 
     log_event(
         "INFO",
-        "deepseek_cookbook_queue_complete",
+        "llm_cookbook_queue_complete",
         jobs=len(jobs),
         failed_sections=combined["failedSections"],
         recipes=len(combined["recipes"]),
@@ -1198,12 +1192,12 @@ def normalize_output(payload: dict[str, Any], result: dict[str, Any]) -> dict[st
     recipes: list[dict[str, Any]] = []
     for index, recipe in enumerate(result.get("recipes", []), start=1):
         if not isinstance(recipe, dict):
-            log_event("WARN", "deepseek_non_object_recipe_skipped", index=index)
+            log_event("WARN", "llm_non_object_recipe_skipped", index=index)
             continue
         title = optional_string(recipe.get("title")) or f"Imported recipe {index}"
         recipe_id = slugify(optional_string(recipe.get("id")) or title, f"imported-recipe-{index}")
         if recipe_id in seen_ids:
-            log_event("WARN", "deepseek_duplicate_recipe_skipped", recipe_id=recipe_id, title=title)
+            log_event("WARN", "llm_duplicate_recipe_skipped", recipe_id=recipe_id, title=title)
             continue
         seen_ids.add(recipe_id)
         recipe["id"] = recipe_id
@@ -1246,7 +1240,7 @@ def normalize_output(payload: dict[str, Any], result: dict[str, Any]) -> dict[st
     blocks: list[dict[str, Any]] = []
     for index, block in enumerate(result.get("contentBlocks", []), start=1):
         if not isinstance(block, dict):
-            log_event("WARN", "deepseek_non_object_content_block_skipped", index=index)
+            log_event("WARN", "llm_non_object_content_block_skipped", index=index)
             continue
         block["id"] = optional_string(block.get("id")) or f"{payload['importId']}-context-{index}"
         block["cookbookId"] = cookbook_id
@@ -1262,7 +1256,7 @@ def normalize_output(payload: dict[str, Any], result: dict[str, Any]) -> dict[st
         block["sourceJson"] = (
             raw_source_json
             if isinstance(raw_source_json, str) and raw_source_json.strip()
-            else json.dumps(raw_source_json or {"source": "deepseek-cookbook"})
+            else json.dumps(raw_source_json or {"source": "llm-cookbook"})
         )
         blocks.append(block)
 
@@ -1313,7 +1307,7 @@ def validate_normalized_output(value: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     if len(sys.argv) != 2:
-        print("usage: deepseek_cookbook_mapper.py REQUEST_JSON", file=sys.stderr)
+        print("usage: llm_cookbook_mapper.py REQUEST_JSON", file=sys.stderr)
         return 2
 
     payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
@@ -1329,19 +1323,19 @@ def main() -> int:
             and not combined["recipes"]
             and not combined["contentBlocks"]
         ):
-            raise RuntimeError("DeepSeek failed for all cookbook sections")
+            raise RuntimeError("LLM failed for all cookbook sections")
 
         normalized = validate_normalized_output(normalize_output(payload, combined))
         normalized_json = json.dumps(normalized, ensure_ascii=False)
-        log_verbose_text("deepseek_cookbook_normalized_output", normalized_json, import_id=payload["importId"])
+        log_verbose_text("llm_cookbook_normalized_output", normalized_json, import_id=payload["importId"])
         print(normalized_json)
         return 0
     except PipelineCancelled as exc:
-        log_event("WARN", "deepseek_cookbook_mapping_canceled", error=str(exc))
-        print(f"deepseek cookbook mapping canceled: {exc}", file=sys.stderr)
+        log_event("WARN", "llm_cookbook_mapping_canceled", error=str(exc))
+        print(f"llm cookbook mapping canceled: {exc}", file=sys.stderr)
         return 4
     except (urllib.error.URLError, KeyError, RuntimeError, json.JSONDecodeError) as exc:
-        print(f"deepseek cookbook mapping failed: {exc}", file=sys.stderr)
+        print(f"llm cookbook mapping failed: {exc}", file=sys.stderr)
         return 3
     finally:
         close_verbose_stream()

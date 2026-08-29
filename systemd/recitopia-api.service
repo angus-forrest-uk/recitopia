@@ -13,8 +13,8 @@ Environment=RECITOPIA_API_PORT=8077
 Environment=RECITOPIA_DB_PATH=/var/lib/recitopia/recitopia.duckdb
 Environment=RECITOPIA_IMPORT_DIR=/var/lib/recitopia/imports
 Environment=RECITOPIA_OCR_SERVER_URL=http://127.0.0.1:8078
-Environment=DEEPSEEK_BASE_URL=https://api.deepseek.com
-EnvironmentFile=-/etc/recitopia/deepseek
+Environment=RECITOPIA_LLM_BASE_URL=https://api.llm.com
+EnvironmentFile=-/etc/recitopia/llm
 ExecStart=/opt/recitopia/bin/recitopia-api
 Restart=on-failure
 RestartSec=5s

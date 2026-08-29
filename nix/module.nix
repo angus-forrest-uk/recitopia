@@ -258,19 +258,19 @@ in
       type = lib.types.nullOr lib.types.path;
       default = null;
       example = "/etc/recitopia-api.env";
-      description = "Optional legacy systemd EnvironmentFile for secrets such as DEEPSEEK_API_KEY.";
+      description = "Optional legacy systemd EnvironmentFile for secrets such as RECITOPIA_LLM_API_KEY.";
     };
 
     environmentFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
       default = [
         "/etc/recitopia-api.env"
-        "/etc/recitopia/deepseek"
+        "/etc/recitopia/llm"
       ];
       example = [
-        "/etc/recitopia/deepseek"
+        "/etc/recitopia/llm"
       ];
-      description = "Optional systemd EnvironmentFile paths. Files use KEY=value syntax and may contain DEEPSEEK_API_KEY.";
+      description = "Optional systemd EnvironmentFile paths. Files use KEY=value syntax and may contain RECITOPIA_LLM_API_KEY.";
     };
 
     ocrPython = lib.mkOption {
@@ -329,10 +329,10 @@ in
       description = "JPEG quality for temporary OCR input images.";
     };
 
-    deepseekPython = lib.mkOption {
+    llmPython = lib.mkOption {
       type = lib.types.path;
       default = "${pkgs.python3}/bin/python3";
-      description = "Python executable for the DeepSeek mapper script.";
+      description = "Python executable for the LLM mapper script.";
     };
 
     openFirewall = lib.mkOption {
@@ -414,9 +414,9 @@ in
         RECITOPIA_RUST_STORE_MODE = "read-write";
         RECITOPIA_OCR_SCRIPT = "${cfg.package}/share/recitopia/tools/ocr/paddle_ocr.py";
         RECITOPIA_PAGE_CROP_SCRIPT = "${cfg.package}/share/recitopia/tools/ocr/page_crop.py";
-        RECITOPIA_DEEPSEEK_PYTHON = toString cfg.deepseekPython;
-        RECITOPIA_DEEPSEEK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/deepseek_mapper.py";
-        RECITOPIA_DEEPSEEK_COOKBOOK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/deepseek_cookbook_mapper.py";
+        RECITOPIA_LLM_PYTHON = toString cfg.llmPython;
+        RECITOPIA_LLM_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_mapper.py";
+        RECITOPIA_LLM_COOKBOOK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_cookbook_mapper.py";
         RECITOPIA_TAR_BIN = "${pkgs.gnutar}/bin/tar";
         # AVIF page-image derivatives for the source-review UI; the API falls
         # back to serving originals if the converter is missing or fails.
@@ -425,7 +425,7 @@ in
         RECITOPIA_OCR_IMAGE_MAX_DIMENSION = toString cfg.ocrImageMaxDimension;
         RECITOPIA_OCR_IMAGE_QUALITY = toString cfg.ocrImageQuality;
         RECITOPIA_OCR_PREPARE_PARALLELISM = toString cfg.ocrPrepareParallelism;
-        DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+        RECITOPIA_LLM_BASE_URL = "https://api.llm.com";
       } // lib.optionalAttrs (!dynamicStorageEnabled) {
         RECITOPIA_DB_PATH = "${toString cfg.dataDir}/recitopia.duckdb";
         RECITOPIA_IMPORT_DIR = toString cfg.importDir;

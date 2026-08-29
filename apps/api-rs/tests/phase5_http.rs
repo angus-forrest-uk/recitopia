@@ -65,7 +65,7 @@ async fn request(app: &Router, method: Method, uri: &str, body: Body) -> (Status
 async fn persisted_progress_can_be_polled_and_canceled_without_a_browser_connection() {
     let (_directory, store, app) = fixture_app();
     let mut progress = CookbookImportProgress::queued("import-1");
-    progress.stage = ImportPipelineStage::DeepseekSection;
+    progress.stage = ImportPipelineStage::LlmSection;
     progress.current_section_index = Some(2);
     progress.section_total = Some(8);
     store

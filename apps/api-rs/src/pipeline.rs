@@ -122,7 +122,7 @@ impl PipelineService {
         })
     }
 
-    /// Writes the cooperative cancel markers consumed by OCR/DeepSeek workers.
+    /// Writes the cooperative cancel markers consumed by OCR/LLM workers.
     ///
     /// # Errors
     ///
@@ -202,14 +202,14 @@ impl PipelineService {
     ///
     /// # Errors
     ///
-    /// Returns [`PipelineError`] when `DeepSeek` is unavailable or returns invalid JSON.
+    /// Returns [`PipelineError`] when `LLM` is unavailable or returns invalid JSON.
     pub async fn create_recipe_draft(
         &self,
         source: RecipeDraftSource,
         cancellation: &CancellationSignal,
     ) -> Result<RecipeImport, PipelineError> {
         if !crate::config::llm_configured() {
-            return Err(PipelineError::DeepSeekNotConfigured);
+            return Err(PipelineError::LlmNotConfigured);
         }
         ensure_not_canceled(cancellation)?;
         let curated_source_block_id = source.source_block_id.clone();
@@ -237,9 +237,9 @@ impl PipelineService {
             ("RECITOPIA_VERBOSE_LOG_DIR", verbose_dir.as_os_str()),
         ];
         let output = run_command(
-            &self.config.deepseek_python,
+            &self.config.llm_python,
             &[
-                self.config.deepseek_recipe_script.as_os_str(),
+                self.config.llm_recipe_script.as_os_str(),
                 request_path.as_os_str(),
             ],
             Some(&env),
@@ -249,7 +249,7 @@ impl PipelineService {
         .await?;
         for (index, line) in output.stderr.lines().enumerate() {
             tracing::info!(
-                event = "deepseek_recipe_mapper_subprocess_log",
+                event = "llm_recipe_mapper_subprocess_log",
                 level = "VERBOSE",
                 context = source.source_label,
                 line = index + 1,
@@ -258,7 +258,7 @@ impl PipelineService {
         }
         if !output.success {
             return Err(PipelineError::WorkerFailed {
-                worker: "deepseek recipe mapper",
+                worker: "llm recipe mapper",
                 detail: output.stderr,
             });
         }
@@ -296,7 +296,7 @@ impl PipelineService {
         })
     }
 
-    /// Runs OCR, deterministic source mapping, and `DeepSeek` extraction without
+    /// Runs OCR, deterministic source mapping, and `LLM` extraction without
     /// owning persistence. The caller commits the returned graph atomically.
     ///
     /// # Errors
@@ -350,7 +350,7 @@ impl PipelineService {
         let (sections, source_blocks) = build_source_map(&source.import_record, &source.pages);
 
         report(ProgressUpdate {
-            stage: Some(ImportPipelineStage::DeepseekPlan),
+            stage: Some(ImportPipelineStage::LlmPlan),
             message: Some("Planning recipe and context extraction.".to_owned()),
             section_count: Some(sections.len()),
             content_block_count: Some(source_blocks.len()),
@@ -582,8 +582,8 @@ impl PipelineService {
         let ocr_output_path = work_dir.join("01-paddle-ocr-output.json");
         let source_map_input_path = work_dir.join("02-source-map-input.json");
         let source_map_output_path = work_dir.join("03-source-map-output.json");
-        let deepseek_input_path = work_dir.join("04-deepseek-input.json");
-        let deepseek_output_path = work_dir.join("05-deepseek-output.json");
+        let llm_input_path = work_dir.join("04-llm-input.json");
+        let llm_output_path = work_dir.join("05-llm-output.json");
         let result_path = work_dir.join("06-diagnostic-result.json");
         fs::write(&ocr_text_path, &page.ocr_text).await?;
         fs::write(&ocr_output_path, &page.ocr_json).await?;
@@ -605,7 +605,7 @@ impl PipelineService {
         )
         .await?;
         fs::write(
-            &deepseek_input_path,
+            &llm_input_path,
             serde_json::to_vec_pretty(&mapper_request(
                 &run.persistence.import_record,
                 &source.cookbook,
@@ -616,7 +616,7 @@ impl PipelineService {
         )
         .await?;
         fs::write(
-            &deepseek_output_path,
+            &llm_output_path,
             serde_json::to_vec_pretty(&json!({
                 "engine": run.extraction_engine,
                 "recipes": run.persistence.recipes,
@@ -630,7 +630,7 @@ impl PipelineService {
             issues.push("Source map returned no sections.".to_owned());
         }
         if run.persistence.content_blocks.is_empty() {
-            issues.push("DeepSeek returned no introduction context block.".to_owned());
+            issues.push("LLM returned no introduction context block.".to_owned());
         }
         if !run.persistence.recipes.is_empty() {
             issues.push("Introduction page was incorrectly extracted as a recipe.".to_owned());
@@ -685,9 +685,9 @@ impl PipelineService {
                 ocr_output_path: display_path(&ocr_output_path),
                 source_map_input_path: display_path(&source_map_input_path),
                 source_map_output_path: display_path(&source_map_output_path),
-                deepseek_input_path: display_path(&deepseek_input_path),
-                deepseek_output_path: display_path(&deepseek_output_path),
-                deepseek_verbose_dir: display_path(&verbose_dir),
+                llm_input_path: display_path(&llm_input_path),
+                llm_output_path: display_path(&llm_output_path),
+                llm_verbose_dir: display_path(&verbose_dir),
                 result_path: display_path(&result_path),
             },
         };
@@ -914,10 +914,10 @@ impl PipelineService {
     ) -> Result<Extraction, PipelineError> {
         if !crate::config::llm_configured() {
             tracing::warn!(
-                event = "deepseek_cookbook_extraction_unavailable",
+                event = "llm_cookbook_extraction_unavailable",
                 import_id = import_record.id,
                 fallback = "context_only",
-                error = "DeepSeekNotConfigured"
+                error = "LlmNotConfigured"
             );
             return Ok(Extraction {
                 recipes: Vec::new(),
@@ -942,14 +942,14 @@ impl PipelineService {
         let request_bytes = serde_json::to_vec(&request)?;
         fs::write(&request_path, &request_bytes).await?;
         report(ProgressUpdate {
-            stage: Some(ImportPipelineStage::DeepseekSection),
-            message: Some("Extracting cookbook sections with DeepSeek.".to_owned()),
+            stage: Some(ImportPipelineStage::LlmSection),
+            message: Some("Extracting cookbook sections with LLM.".to_owned()),
             current_section_index: Some(0),
             section_total: Some(sections.len().max(1)),
             ..ProgressUpdate::default()
         });
         tracing::info!(
-            event = "deepseek_cookbook_mapper_start",
+            event = "llm_cookbook_mapper_start",
             import_id = import_record.id,
             cookbook_id = import_record.cookbook_id,
             sections = sections.len(),
@@ -963,9 +963,9 @@ impl PipelineService {
             ("RECITOPIA_VERBOSE_LOG_DIR", verbose_dir.as_os_str()),
         ];
         let output = run_command(
-            &self.config.deepseek_python,
+            &self.config.llm_python,
             &[
-                self.config.deepseek_cookbook_script.as_os_str(),
+                self.config.llm_cookbook_script.as_os_str(),
                 request_path.as_os_str(),
             ],
             Some(&env),
@@ -975,7 +975,7 @@ impl PipelineService {
         .await?;
         for (index, line) in output.stderr.lines().enumerate() {
             tracing::info!(
-                event = "deepseek_cookbook_mapper_subprocess_log",
+                event = "llm_cookbook_mapper_subprocess_log",
                 level = "VERBOSE",
                 context = import_record.id,
                 line = index + 1,
@@ -984,20 +984,20 @@ impl PipelineService {
         }
         if !output.success {
             return Err(PipelineError::WorkerFailed {
-                worker: "deepseek cookbook mapper",
+                worker: "llm cookbook mapper",
                 detail: output.stderr,
             });
         }
         let output_path = work_dir.join("cookbook-mapper-output.json");
         fs::write(&output_path, &output.stdout).await?;
-        let mut parsed: DeepSeekOutput = serde_json::from_slice(&output.stdout)?;
+        let mut parsed: LLMOutput = serde_json::from_slice(&output.stdout)?;
         normalize_recipes(import_record, cookbook, &mut parsed.recipes);
         normalize_content_blocks(import_record, &mut parsed.content_blocks);
         if parsed.content_blocks.is_empty() {
             parsed.content_blocks = context_only_blocks(source_blocks);
         }
         tracing::info!(
-            event = "deepseek_cookbook_mapper_complete",
+            event = "llm_cookbook_mapper_complete",
             import_id = import_record.id,
             stdout_bytes = output.stdout.len(),
             stderr_bytes = output.stderr.len(),
@@ -1007,7 +1007,7 @@ impl PipelineService {
         Ok(Extraction {
             recipes: parsed.recipes,
             content_blocks: parsed.content_blocks,
-            engine: "deepseek".to_owned(),
+            engine: "llm".to_owned(),
         })
     }
 }
@@ -1082,7 +1082,7 @@ impl OcrBatchItem {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct DeepSeekOutput {
+struct LLMOutput {
     #[serde(default)]
     recipes: Vec<Recipe>,
     #[serde(default)]
@@ -1188,8 +1188,8 @@ async fn pump_progress_file(path: &Path, consumed: &mut usize, report: &Progress
             .and_then(Value::as_u64)
             .unwrap_or_default();
         report(ProgressUpdate {
-            stage: Some(ImportPipelineStage::DeepseekSection),
-            message: Some("Extracting cookbook sections with DeepSeek.".to_owned()),
+            stage: Some(ImportPipelineStage::LlmSection),
+            message: Some("Extracting cookbook sections with LLM.".to_owned()),
             current_section_index: usize::try_from(completed).ok(),
             section_total: usize::try_from(total).ok(),
             current_section_title: value
@@ -1828,8 +1828,8 @@ pub enum PipelineError {
     OcrProducedNoText,
     #[error("diagnostic source page was not found")]
     DiagnosticPageNotFound,
-    #[error("DeepSeek is not configured")]
-    DeepSeekNotConfigured,
+    #[error("LLM is not configured")]
+    LlmNotConfigured,
     #[error("recipe mapper returned no recipe")]
     MapperReturnedNoRecipe,
     #[error("{worker} failed: {detail}")]

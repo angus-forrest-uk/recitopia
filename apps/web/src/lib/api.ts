@@ -438,9 +438,9 @@ export interface IntroductionPageDiagnosticArtifacts {
   ocrOutputPath: string;
   sourceMapInputPath: string;
   sourceMapOutputPath: string;
-  deepseekInputPath: string;
-  deepseekOutputPath: string;
-  deepseekVerboseDir: string;
+  llmInputPath: string;
+  llmOutputPath: string;
+  llmVerboseDir: string;
 }
 
 export interface IntroductionPageDiagnostic {

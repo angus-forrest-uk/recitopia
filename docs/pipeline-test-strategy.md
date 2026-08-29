@@ -9,7 +9,7 @@ daily test surface smaller and sharper.
 1. Image packaging and dedupe
    - Input: a tiny archive with two or three images, including one duplicate hash.
    - Expected output: deterministic image paths, duplicate rejection, and stable page ordering.
-   - This should not run OCR or DeepSeek.
+   - This should not run OCR or LLM.
 
 2. OCR adapter contract
    - Input: one known-good image or a mocked OCR server response.
@@ -24,18 +24,18 @@ daily test surface smaller and sharper.
    - The current broad version is `apps/api/src/import_pipeline_golden_test.zig`; add smaller Zig
      tests beside `import_pipeline.zig` when changing a single heuristic.
 
-4. DeepSeek mapper contract
+4. LLM mapper contract
    - Input: `tools/ml/testdata/mini_cookbook_payload.json`, a six-page ideal OCR payload.
    - Expected output: correct page batching, section bounds handling, deterministic merge order for
      parallel responses, duplicate recipe removal, and normalized content block positions.
-   - Run with `bun run test:ml`. These tests fake DeepSeek, so they are fast, deterministic, and do
+   - Run with `bun run test:ml`. These tests fake LLM, so they are fast, deterministic, and do
      not spend API credits.
 
 5. Persistence transaction contract
    - Input: already-normalized recipes, pages, sections, and content blocks.
    - Expected output: atomic DuckDB writes, stale import rows removed only for the target import,
      derived fields recomputed, and rollback on invalid rows.
-   - This belongs in Zig/DuckDB tests and should not call OCR or DeepSeek.
+   - This belongs in Zig/DuckDB tests and should not call OCR or LLM.
 
 6. API smoke with miniature import
    - Input: a tiny archive or fixture payload through HTTP.
@@ -61,7 +61,7 @@ bun run harness -- verify --suite quick
 
 - Keep tiny fixtures human-readable and checked in.
 - Prefer idealized text at each boundary, then add one real-world fixture only when a bug needs it.
-- Fake paid or slow services in unit tests. Networked DeepSeek and GPU OCR runs belong in smoke or
+- Fake paid or slow services in unit tests. Networked LLM and GPU OCR runs belong in smoke or
   deployment checks.
 - When a test fails, it should identify the broken layer: packaging, OCR contract, source map,
-  DeepSeek mapping, persistence, API orchestration, or frontend review.
+  LLM mapping, persistence, API orchestration, or frontend review.

@@ -1,11 +1,6 @@
 export type SourceKind = "image_set" | "pdf" | "manual" | "web";
 
-export type ImportStatus =
-  | "uploaded"
-  | "ocr_ready"
-  | "mapped"
-  | "reviewed"
-  | "committed";
+export type ImportStatus = "uploaded" | "ocr_ready" | "mapped" | "reviewed" | "committed";
 
 export type PageKind =
   | "cover"
@@ -21,12 +16,7 @@ export type PageKind =
   | "blank"
   | "unknown";
 
-export type PageReviewStatus =
-  | "pending"
-  | "accepted"
-  | "needs_crop"
-  | "needs_ocr_fix"
-  | "ignored";
+export type PageReviewStatus = "pending" | "accepted" | "needs_crop" | "needs_ocr_fix" | "ignored";
 
 export type SectionKind =
   | "front_matter"

@@ -89,14 +89,15 @@ stdenv.mkDerivation {
     cp ../../tools/ocr/paddle_ocr.py "$out/share/recitopia/tools/ocr/paddle_ocr.py"
     cp ../../tools/ocr/paddle_ocr_server.py "$out/share/recitopia/tools/ocr/paddle_ocr_server.py"
     cp ../../tools/ocr/page_crop.py "$out/share/recitopia/tools/ocr/page_crop.py"
-    cp ../../tools/ml/deepseek_mapper.py "$out/share/recitopia/tools/ml/deepseek_mapper.py"
-    cp ../../tools/ml/deepseek_cookbook_mapper.py "$out/share/recitopia/tools/ml/deepseek_cookbook_mapper.py"
+    cp ../../tools/ml/llm_provider.py "$out/share/recitopia/tools/ml/llm_provider.py"
+    cp ../../tools/ml/llm_mapper.py "$out/share/recitopia/tools/ml/llm_mapper.py"
+    cp ../../tools/ml/llm_cookbook_mapper.py "$out/share/recitopia/tools/ml/llm_cookbook_mapper.py"
 
     wrapProgram "$out/bin/recitopia-api" \
       --set-default RECITOPIA_OCR_SCRIPT "$out/share/recitopia/tools/ocr/paddle_ocr.py" \
       --set-default RECITOPIA_PAGE_CROP_SCRIPT "$out/share/recitopia/tools/ocr/page_crop.py" \
-      --set-default RECITOPIA_DEEPSEEK_SCRIPT "$out/share/recitopia/tools/ml/deepseek_mapper.py" \
-      --set-default RECITOPIA_DEEPSEEK_COOKBOOK_SCRIPT "$out/share/recitopia/tools/ml/deepseek_cookbook_mapper.py"
+      --set-default RECITOPIA_LLM_SCRIPT "$out/share/recitopia/tools/ml/llm_mapper.py" \
+      --set-default RECITOPIA_LLM_COOKBOOK_SCRIPT "$out/share/recitopia/tools/ml/llm_cookbook_mapper.py"
 
     runHook postInstall
   '';

@@ -13,8 +13,8 @@ const DEFAULT_DATABASE_PATH: &str = "../../data/recitopia.duckdb";
 const DEFAULT_IMPORT_DIRECTORY: &str = "../../data/imports";
 const DEFAULT_OCR_SERVER_URL: &str = "http://127.0.0.1:8078";
 const DEFAULT_OCR_SCRIPT: &str = "../../tools/ocr/paddle_ocr.py";
-const DEFAULT_DEEPSEEK_COOKBOOK_SCRIPT: &str = "../../tools/ml/deepseek_cookbook_mapper.py";
-const DEFAULT_DEEPSEEK_RECIPE_SCRIPT: &str = "../../tools/ml/deepseek_mapper.py";
+const DEFAULT_RECITOPIA_LLM_COOKBOOK_SCRIPT: &str = "../../tools/ml/llm_cookbook_mapper.py";
+const DEFAULT_LLM_RECIPE_SCRIPT: &str = "../../tools/ml/llm_mapper.py";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum StoreMode {
@@ -39,9 +39,9 @@ pub struct PipelineConfig {
     pub ocr_server_url: String,
     pub ocr_python: PathBuf,
     pub ocr_script: PathBuf,
-    pub deepseek_python: PathBuf,
-    pub deepseek_cookbook_script: PathBuf,
-    pub deepseek_recipe_script: PathBuf,
+    pub llm_python: PathBuf,
+    pub llm_cookbook_script: PathBuf,
+    pub llm_recipe_script: PathBuf,
     pub ocr_batch_page_limit: usize,
     pub concurrency: usize,
 }
@@ -142,36 +142,30 @@ impl Config {
             &["RECITOPIA_RUST_OCR_SCRIPT", "RECITOPIA_OCR_SCRIPT"],
         )
         .unwrap_or_else(|| DEFAULT_OCR_SCRIPT.to_owned());
-        let deepseek_python = first_value(
+        let llm_python = first_value(
             &mut lookup,
             &[
                 "RECITOPIA_RUST_LLM_PYTHON",
                 "RECITOPIA_LLM_PYTHON",
-                "RECITOPIA_RUST_DEEPSEEK_PYTHON",
-                "RECITOPIA_DEEPSEEK_PYTHON",
             ],
         )
         .unwrap_or_else(|| "python3".to_owned());
-        let deepseek_cookbook_script = first_value(
+        let llm_cookbook_script = first_value(
             &mut lookup,
             &[
                 "RECITOPIA_RUST_LLM_COOKBOOK_SCRIPT",
                 "RECITOPIA_LLM_COOKBOOK_SCRIPT",
-                "RECITOPIA_RUST_DEEPSEEK_COOKBOOK_SCRIPT",
-                "RECITOPIA_DEEPSEEK_COOKBOOK_SCRIPT",
             ],
         )
-        .unwrap_or_else(|| DEFAULT_DEEPSEEK_COOKBOOK_SCRIPT.to_owned());
-        let deepseek_recipe_script = first_value(
+        .unwrap_or_else(|| DEFAULT_RECITOPIA_LLM_COOKBOOK_SCRIPT.to_owned());
+        let llm_recipe_script = first_value(
             &mut lookup,
             &[
                 "RECITOPIA_RUST_LLM_RECIPE_SCRIPT",
                 "RECITOPIA_LLM_SCRIPT",
-                "RECITOPIA_RUST_DEEPSEEK_RECIPE_SCRIPT",
-                "RECITOPIA_DEEPSEEK_SCRIPT",
             ],
         )
-        .unwrap_or_else(|| DEFAULT_DEEPSEEK_RECIPE_SCRIPT.to_owned());
+        .unwrap_or_else(|| DEFAULT_LLM_RECIPE_SCRIPT.to_owned());
         let ocr_batch_page_limit = positive_usize(
             "RECITOPIA_OCR_BATCH_PAGE_LIMIT",
             first_value(
@@ -206,9 +200,9 @@ impl Config {
                 ocr_server_url,
                 ocr_python: PathBuf::from(ocr_python),
                 ocr_script: PathBuf::from(ocr_script),
-                deepseek_python: PathBuf::from(deepseek_python),
-                deepseek_cookbook_script: PathBuf::from(deepseek_cookbook_script),
-                deepseek_recipe_script: PathBuf::from(deepseek_recipe_script),
+                llm_python: PathBuf::from(llm_python),
+                llm_cookbook_script: PathBuf::from(llm_cookbook_script),
+                llm_recipe_script: PathBuf::from(llm_recipe_script),
                 ocr_batch_page_limit,
                 concurrency,
             },
@@ -384,7 +378,7 @@ pub fn llm_configured() -> bool {
         "google" => &["GOOGLE_API_KEY", "GEMINI_API_KEY"],
         "openai" => &["OPENAI_API_KEY"],
         "openrouter" => &["OPENROUTER_API_KEY"],
-        "deepseek" => &["DEEPSEEK_API_KEY"],
+        "llm" => &["RECITOPIA_LLM_API_KEY"],
         _ => return false,
     };
     keys.iter().any(|key| std::env::var_os(key).is_some())

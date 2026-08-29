@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Map OCR text into a Recitopia recipe draft with DeepSeek JSON mode."""
+"""Map OCR text into a Recitopia recipe draft with LLM JSON mode."""
 
 from __future__ import annotations
 
@@ -106,13 +106,13 @@ def log_event(level: str, event: str, **fields: Any) -> None:
 
 
 def verbose_enabled() -> bool:
-    value = os.getenv("RECITOPIA_VERBOSE_DEEPSEEK_LOGS", "true").strip().lower()
+    value = os.getenv("RECITOPIA_VERBOSE_LLM_LOGS", "true").strip().lower()
     return value not in {"0", "false", "no", "off"}
 
 
 def safe_log_name(value: str) -> str:
     safe = re.sub(r"[^a-zA-Z0-9._-]+", "-", value).strip("-._")
-    return safe or "deepseek-log"
+    return safe or "llm-log"
 
 
 def init_verbose_stream() -> None:
@@ -127,7 +127,7 @@ def init_verbose_stream() -> None:
     except OSError as exc:
         log_event(
             "WARN",
-            "deepseek_verbose_fifo_unavailable",
+            "llm_verbose_fifo_unavailable",
             fifo=fifo_path,
             error=f"{type(exc).__name__}: {exc}",
         )
@@ -165,7 +165,7 @@ def write_verbose_file(event: str, text: str, **fields: Any) -> str | None:
     except OSError as exc:
         log_event(
             "WARN",
-            "deepseek_verbose_file_write_failed",
+            "llm_verbose_file_write_failed",
             event=event,
             error=f"{type(exc).__name__}: {exc}",
         )
@@ -267,9 +267,6 @@ def request_model(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-request_deepseek = request_model
-
-
 def require_list(value: Any, path: str) -> list[Any]:
     if not isinstance(value, list):
         raise RuntimeError(f"{path} must be a list")
@@ -299,19 +296,19 @@ def validate_recipe_output(recipe: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     if len(sys.argv) != 2:
-        print("usage: deepseek_mapper.py REQUEST_JSON", file=sys.stderr)
+        print("usage: llm_mapper.py REQUEST_JSON", file=sys.stderr)
         return 2
 
     payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     init_verbose_stream()
     try:
-        recipe = validate_recipe_output(request_deepseek(payload))
+        recipe = validate_recipe_output(request_model(payload))
         recipe_json = json.dumps(recipe, ensure_ascii=False)
-        log_verbose_text("deepseek_recipe_normalized_output", recipe_json, source_label=payload["sourceLabel"])
+        log_verbose_text("llm_recipe_normalized_output", recipe_json, source_label=payload["sourceLabel"])
         print(recipe_json)
         return 0
     except (urllib.error.URLError, KeyError, RuntimeError, json.JSONDecodeError) as exc:
-        log_event("ERROR", "deepseek_recipe_mapping_failed", error=f"{type(exc).__name__}: {exc}")
+        log_event("ERROR", "llm_recipe_mapping_failed", error=f"{type(exc).__name__}: {exc}")
         return 3
     finally:
         close_verbose_stream()

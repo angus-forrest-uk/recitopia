@@ -77,8 +77,8 @@ in
     environmentFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
       default = [ ];
-      example = [ "/etc/recitopia/deepseek" ];
-      description = "Optional environment files, including the DeepSeek API key.";
+      example = [ "/etc/recitopia/llm" ];
+      description = "Optional environment files, including the LLM API key.";
     };
 
     openFirewall = lib.mkOption {
@@ -129,10 +129,10 @@ in
         RECITOPIA_RUST_OCR_SCRIPT = "${cfg.package}/share/recitopia/tools/ocr/paddle_ocr.py";
         RECITOPIA_RUST_PIPELINE_CONCURRENCY = toString cfg.pipelineConcurrency;
         RECITOPIA_RUST_IMAGE_CONVERT_BIN = "${pkgs.imagemagick}/bin/magick";
-        RECITOPIA_RUST_DEEPSEEK_PYTHON = "${pkgs.python3}/bin/python3";
-        RECITOPIA_RUST_DEEPSEEK_COOKBOOK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/deepseek_cookbook_mapper.py";
-        RECITOPIA_RUST_DEEPSEEK_RECIPE_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/deepseek_mapper.py";
-        DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+        RECITOPIA_RUST_LLM_PYTHON = "${pkgs.python3}/bin/python3";
+        RECITOPIA_RUST_RECITOPIA_LLM_COOKBOOK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_cookbook_mapper.py";
+        RECITOPIA_RUST_LLM_RECIPE_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_mapper.py";
+        RECITOPIA_LLM_BASE_URL = "https://api.llm.com";
         RUST_LOG = "recitopia_api_rs=info";
       } // lib.optionalAttrs (cfg.ocrPython != null) {
         LD_LIBRARY_PATH = ocrLibraryPath;

@@ -789,8 +789,8 @@ pub enum ImportPipelineStage {
     LoadingPages,
     OcrPages,
     SourceMap,
-    DeepseekPlan,
-    DeepseekSection,
+    LlmPlan,
+    LlmSection,
     Normalizing,
     Persisting,
     Complete,
@@ -860,9 +860,9 @@ pub struct IntroductionPageDiagnosticArtifacts {
     pub ocr_output_path: String,
     pub source_map_input_path: String,
     pub source_map_output_path: String,
-    pub deepseek_input_path: String,
-    pub deepseek_output_path: String,
-    pub deepseek_verbose_dir: String,
+    pub llm_input_path: String,
+    pub llm_output_path: String,
+    pub llm_verbose_dir: String,
     pub result_path: String,
 }
 

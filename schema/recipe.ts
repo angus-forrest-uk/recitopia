@@ -1,11 +1,6 @@
 export type ExtractionStatus = "draft" | "needs_review" | "verified";
 
-export type AlternateNameKind =
-  | "native"
-  | "romanized"
-  | "translated"
-  | "subtitle"
-  | "alias";
+export type AlternateNameKind = "native" | "romanized" | "translated" | "subtitle" | "alias";
 
 export interface AlternateName {
   kind: AlternateNameKind;
