@@ -118,7 +118,7 @@ POST /ocr/batch
 ## LLM provider
 
 ```
-anthropic   google   openai   openrouter   llm
+anthropic   google   openai   openrouter   deepseek
 ```
 
 No default. `RECITOPIA_LLM_PROVIDER` must be set.
@@ -133,7 +133,7 @@ RECITOPIA_LLM_PROVIDER=anthropic     ANTHROPIC_API_KEY=
 RECITOPIA_LLM_PROVIDER=google        GOOGLE_API_KEY=      # or GEMINI_API_KEY
 RECITOPIA_LLM_PROVIDER=openai        OPENAI_API_KEY=
 RECITOPIA_LLM_PROVIDER=openrouter    OPENROUTER_API_KEY=
-RECITOPIA_LLM_PROVIDER=llm      RECITOPIA_LLM_API_KEY=
+RECITOPIA_LLM_PROVIDER=deepseek      DEEPSEEK_API_KEY=
 ```
 
 ```sh
@@ -160,7 +160,7 @@ anthropic    claude-sonnet-5              https://api.anthropic.com
 google       gemini-2.5-flash             https://generativelanguage.googleapis.com
 openai       gpt-5                        https://api.openai.com/v1
 openrouter   anthropic/claude-sonnet-5    https://openrouter.ai/api/v1
-llm     llm-v4-flash            https://api.llm.com
+deepseek     deepseek-v4-flash            https://api.deepseek.com
 ```
 
 ```sh
@@ -181,9 +181,6 @@ RECITOPIA_TAR_BIN=/usr/bin/tar
 RECITOPIA_OCR_PYTHON=/var/lib/recitopia/ocr-venv/bin/python
 RECITOPIA_OCR_SCRIPT=tools/ocr/paddle_ocr.py
 RECITOPIA_OCR_SERVER_URL=http://127.0.0.1:8078
-RECITOPIA_PAGE_CROP_PYTHON=/var/lib/recitopia/ocr-venv/bin/python
-RECITOPIA_PAGE_CROP_SCRIPT=tools/ocr/page_crop.py
-RECITOPIA_PAGE_CROP_DISABLED=0
 
 RECITOPIA_LLM_SCRIPT=tools/ml/llm_mapper.py
 RECITOPIA_LLM_COOKBOOK_SCRIPT=tools/ml/llm_cookbook_mapper.py

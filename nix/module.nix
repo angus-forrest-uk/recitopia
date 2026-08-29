@@ -413,7 +413,6 @@ in
         RECITOPIA_API_PORT = toString cfg.port;
         RECITOPIA_RUST_STORE_MODE = "read-write";
         RECITOPIA_OCR_SCRIPT = "${cfg.package}/share/recitopia/tools/ocr/paddle_ocr.py";
-        RECITOPIA_PAGE_CROP_SCRIPT = "${cfg.package}/share/recitopia/tools/ocr/page_crop.py";
         RECITOPIA_LLM_PYTHON = toString cfg.llmPython;
         RECITOPIA_LLM_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_mapper.py";
         RECITOPIA_LLM_COOKBOOK_SCRIPT = "${cfg.package}/share/recitopia/tools/ml/llm_cookbook_mapper.py";
@@ -425,7 +424,6 @@ in
         RECITOPIA_OCR_IMAGE_MAX_DIMENSION = toString cfg.ocrImageMaxDimension;
         RECITOPIA_OCR_IMAGE_QUALITY = toString cfg.ocrImageQuality;
         RECITOPIA_OCR_PREPARE_PARALLELISM = toString cfg.ocrPrepareParallelism;
-        RECITOPIA_LLM_BASE_URL = "https://api.llm.com";
       } // lib.optionalAttrs (!dynamicStorageEnabled) {
         RECITOPIA_DB_PATH = "${toString cfg.dataDir}/recitopia.duckdb";
         RECITOPIA_IMPORT_DIR = toString cfg.importDir;
