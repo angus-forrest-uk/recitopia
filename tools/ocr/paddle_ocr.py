@@ -3,7 +3,7 @@
 
 the server should install PaddleOCR with a GPU-enabled PaddlePaddle wheel and run
 this script through RECITOPIA_OCR_PYTHON. The script prints a compact JSON
-payload so the Zig API can remain the orchestration layer.
+payload so the API can remain the orchestration layer.
 """
 
 from __future__ import annotations

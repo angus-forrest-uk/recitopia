@@ -6,8 +6,6 @@
       "!node_modules",
       "!dist",
       "!**/dist",
-      "!apps/api/zig-cache",
-      "!apps/api/zig-out",
       "!apps/api-rs/target",
       "!**/target",
       "!playwright-report",

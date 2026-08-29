@@ -187,7 +187,7 @@ class LLMCookbookMapperTests(unittest.TestCase):
         self.assertEqual([1, 2], [block["position"] for block in normalized["contentBlocks"]])
         self.assertEqual(["paragraph", "paragraph"], [block["kind"] for block in normalized["contentBlocks"]])
 
-    def test_normalize_output_coerces_llm_loose_types_for_zig(self) -> None:
+    def test_normalize_output_coerces_llm_loose_types(self) -> None:
         payload = load_payload()
         result = {
             "recipes": [

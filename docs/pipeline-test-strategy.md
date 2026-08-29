@@ -13,7 +13,7 @@ daily test surface smaller and sharper.
 
 2. OCR adapter contract
    - Input: one known-good image or a mocked OCR server response.
-   - Expected output: the JSON shape consumed by the Zig importer: text, confidence, engine, and
+   - Expected output: the JSON shape consumed by the importer: text, confidence, engine, and
      failures.
    - This verifies the GPU/Paddle process boundary without involving recipe extraction.
 
@@ -21,8 +21,8 @@ daily test surface smaller and sharper.
    - Input: idealized `CookbookPage` OCR text.
    - Expected output: page kind classification, section ranges, connective text blocks, and page
      overlap rules.
-   - The current broad version is `apps/api/src/import_pipeline_golden_test.zig`; add smaller Zig
-     tests beside `import_pipeline.zig` when changing a single heuristic.
+   - Add smaller Rust
+     tests beside the import pipeline when changing a single heuristic.
 
 4. LLM mapper contract
    - Input: `tools/ml/testdata/mini_cookbook_payload.json`, a six-page ideal OCR payload.
@@ -35,7 +35,7 @@ daily test surface smaller and sharper.
    - Input: already-normalized recipes, pages, sections, and content blocks.
    - Expected output: atomic DuckDB writes, stale import rows removed only for the target import,
      derived fields recomputed, and rollback on invalid rows.
-   - This belongs in Zig/DuckDB tests and should not call OCR or LLM.
+   - This belongs in Rust/DuckDB tests and should not call OCR or LLM.
 
 6. API smoke with miniature import
    - Input: a tiny archive or fixture payload through HTTP.

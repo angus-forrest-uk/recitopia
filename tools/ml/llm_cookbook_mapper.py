@@ -170,7 +170,7 @@ def raise_if_cancelled() -> None:
 
 
 def report_progress(completed: int, total: int, section_title: str) -> None:
-    """Append a progress line for the Zig pipeline's watcher so the UI can
+    """Append a progress line for the pipeline's watcher so the UI can
     show LLM extraction advancing batch by batch. Best-effort: progress must
     never fail the extraction."""
     path = os.getenv("RECITOPIA_PROGRESS_FILE")

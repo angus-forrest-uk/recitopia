@@ -13,10 +13,10 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `cd ../api && RECITOPIA_DB_PATH=:memory: RECITOPIA_API_PORT=${apiPort} zig build run`,
+      command: `cd ../api-rs && RECITOPIA_DB_PATH=:memory: RECITOPIA_API_PORT=${apiPort} RECITOPIA_RUST_STORE_MODE=read-write cargo run --features bundled-duckdb`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
       reuseExistingServer: false,
-      timeout: 120_000,
+      timeout: 600_000,
     },
     {
       command: `RECITOPIA_API_URL=http://127.0.0.1:${apiPort} bun run dev -- --host 127.0.0.1 --port ${webPort}`,

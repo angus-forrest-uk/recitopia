@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Long-lived PaddleOCR service for Recitopia.
 
-The Zig API can still run paddle_ocr.py as a subprocess, but cookbook imports are
+The API can still run paddle_ocr.py as a subprocess, but cookbook imports are
 much faster when the model is loaded once and reused through this localhost API.
 
 This server intentionally starts even when PaddleOCR cannot be loaded. NixOS

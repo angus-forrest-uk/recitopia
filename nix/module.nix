@@ -178,7 +178,7 @@ in
       type = lib.types.package;
       default = pkgs.callPackage ../apps/api-rs/package.nix { };
       defaultText = lib.literalExpression "pkgs.callPackage ../apps/api-rs/package.nix { }";
-      description = "Recitopia API package to run. The Rust API is the default; use recitopia-api-zig for rollback.";
+      description = "Recitopia API package to run.";
     };
 
     user = lib.mkOption {

@@ -22,7 +22,6 @@
             cargo = rustToolchain;
             rustc = rustToolchain;
           };
-          zigApi = pkgs.callPackage ./nix/package.nix { };
           rustApi = pkgs.callPackage ./apps/api-rs/package.nix {
             inherit rustPlatform;
           };
@@ -30,7 +29,6 @@
         {
           recitopia-api = rustApi;
           recitopia-api-rust = rustApi;
-          recitopia-api-zig = zigApi;
           default = rustApi;
         });
 

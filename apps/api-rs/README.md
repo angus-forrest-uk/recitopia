@@ -2,7 +2,7 @@
 
 This directory contains the Rust Recitopia API. It is the default production
 implementation for the main `recitopia-api` Nix package and systemd service.
-The legacy Zig service is still kept in the repository as a rollback target.
+
 
 ## Current milestone: production cutover wiring
 
@@ -47,10 +47,11 @@ The legacy Zig service is still kept in the repository as a rollback target.
 - A legacy NixOS shadow service and Go normalized-response comparator for
   comparison work.
 
-The implementation still does not own schema migrations, so production cutover
-uses the existing migrated DuckDB. Interrupted jobs are persisted but not
-resumed after process restart, and the web Playwright suite still uses the Zig
-in-memory seed path until Rust has a matching schema/seed initializer.
+The implementation still does not own schema migrations, so deployment uses an
+already migrated DuckDB. Interrupted jobs are persisted but not resumed after
+process restart. The Playwright suite starts this service with
+`RECITOPIA_DB_PATH=:memory:`, which is only useful once a schema/seed
+initializer exists.
 
 ## Run locally
 
@@ -150,7 +151,7 @@ cargo test --no-default-features --features system-duckdb
 ```
 
 The flake exposes this service as `recitopia-api` and `recitopia-api-rust`.
-The legacy Zig package is `recitopia-api-zig`. The Rust package pins stable
+The package pins stable
 Rust `1.88.0` through `rust-overlay`: the server's current nixpkgs Rust 1.94/LLVM
 21 compiler crashes in `LoopSimplifyCFG` while optimizing ordinary DuckDB
 dependencies.
@@ -172,18 +173,8 @@ database and running the live shadow comparator remain Phase 6 gates.
 
 ## Shadow on the server
 
-`../../nix/the server-rust-shadow.nix` installs the Rust API on Tailscale port
+`./module.nix` installs the Rust API on Tailscale port
 `8079` with a copied database, separate import directory, shared local OCR
 service, and read-only storage by default. The module rejects read-write access
 to the live Zig database path.
 
-Use `../../docs/rust-shadow-deploy.md` for the consistent-copy, NixOS, parity,
-and rollback procedure. Once both services are running against equivalent
-catalogue state:
-
-```sh
-cd tools/recitopia-harness
-go run ./cmd/recitopia-harness --timeout 2m shadow-compare \
-  --zig-url http://127.0.0.1:8077 \
-  --rust-url http://127.0.0.1:8079
-```
