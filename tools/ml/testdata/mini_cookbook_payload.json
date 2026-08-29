@@ -1,0 +1,68 @@
+{
+  "importId": "mini-import",
+  "cookbookId": "mini-kitchen",
+  "sourcePath": "fixtures/mini-kitchen",
+  "cookbookTitle": "Mini Kitchen",
+  "authorIds": ["test-author"],
+  "sections": [
+    {
+      "id": "mini-section-front",
+      "title": "Front Matter",
+      "kind": "front_matter",
+      "pageStart": 1,
+      "pageEnd": 2
+    },
+    {
+      "id": "mini-section-01",
+      "title": "01 Weeknight Rice",
+      "kind": "chapter",
+      "pageStart": 3,
+      "pageEnd": 6
+    }
+  ],
+  "contentBlocks": [],
+  "pages": [
+    {
+      "id": "mini-page-001",
+      "printedPageNumber": 1,
+      "imageIndex": 1,
+      "pageKind": "title",
+      "ocrText": "Mini Kitchen\nA tiny cookbook fixture"
+    },
+    {
+      "id": "mini-page-002",
+      "printedPageNumber": 2,
+      "imageIndex": 2,
+      "pageKind": "contents",
+      "ocrText": "Contents\n01 Weeknight Rice 3\nLemon Rice 4\nSesame Greens 5"
+    },
+    {
+      "id": "mini-page-003",
+      "printedPageNumber": 3,
+      "imageIndex": 3,
+      "pageKind": "chapter_opener",
+      "ocrText": "01 Weeknight Rice\n4. Lemon Rice\n5. Sesame Greens\n3 Weeknight Rice"
+    },
+    {
+      "id": "mini-page-004",
+      "printedPageNumber": 4,
+      "imageIndex": 4,
+      "pageKind": "recipe",
+      "ocrText": "Lemon Rice\nServes 2\n1 cup cooked rice\n1 lemon, zested\n1 tbsp butter\nWarm the butter in a pan. Fold in the rice and lemon zest. Season and serve.\n4 Weeknight Rice"
+    },
+    {
+      "id": "mini-page-005",
+      "printedPageNumber": 5,
+      "imageIndex": 5,
+      "pageKind": "recipe",
+      "ocrText": "Sesame Greens\nServes 2\n200g greens\n1 tsp sesame oil\n1 tsp soy sauce\nSteam the greens until bright. Toss with sesame oil and soy sauce.\n5 Weeknight Rice"
+    },
+    {
+      "id": "mini-page-006",
+      "printedPageNumber": 6,
+      "imageIndex": 6,
+      "pageKind": "paragraph",
+      "ocrText": "A short note on rice\nLeftover rice is useful for quick meals and packed lunches.\n6 Weeknight Rice"
+    }
+  ]
+}

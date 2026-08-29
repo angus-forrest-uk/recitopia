@@ -1,0 +1,59 @@
+[package]
+name = "recitopia-api-rs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85.1"
+description = "Parallel Rust port of the Recitopia API"
+license = "MIT"
+
+[features]
+default = []
+duckdb-store = ["dep:duckdb"]
+bundled-duckdb = ["duckdb-store", "duckdb/bundled"]
+system-duckdb = ["duckdb-store"]
+
+[[bin]]
+name = "recitopia-api-rs"
+path = "src/main.rs"
+required-features = ["duckdb-store"]
+
+[[bin]]
+name = "recitopia-hx"
+path = "src/bin/recitopia_hx.rs"
+
+[dependencies]
+axum = "0.8.9"
+base64 = "0.22.1"
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+duckdb = { version = "=1.10502.0", default-features = false, optional = true }
+futures-util = "0.3.32"
+http-body-util = "0.1.3"
+reqwest = { version = "0.12.28", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+sha2 = "0.10.9"
+tar = "0.4.46"
+thiserror = "2.0.18"
+tokio = { version = "1.52.3", features = ["fs", "io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+tower = { version = "0.5.3", features = ["util"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt", "json"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[profile.release]
+# the server's current rustc 1.94/LLVM 21 crashes in the O3 LoopSimplifyCFG pass
+# while optimizing transitive DuckDB dependencies. O2 remains optimized and is
+# the appropriate reliability tradeoff for this I/O-bound service.
+opt-level = 2
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+assigning_clones = "allow"
+manual_let_else = "allow"
+too_many_lines = "allow"
