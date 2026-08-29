@@ -162,7 +162,7 @@ def resolve_config(env: dict[str, str] | None = None) -> Config:
         api_key=api_key,
         base_url=base_url.rstrip("/"),
         model=model,
-        max_tokens=_int_env(("RECITOPIA_LLM_MAX_TOKENS",), 5000),
+        max_tokens=_int_env(("RECITOPIA_LLM_MAX_TOKENS",), 16000),
         timeout=_float_env(("RECITOPIA_LLM_TIMEOUT",), 90.0),
         attempts=max(1, _int_env(("RECITOPIA_LLM_ATTEMPTS", "DEEPSEEK_ATTEMPTS"), 3)),
         extra_headers=extra_headers,
@@ -190,16 +190,33 @@ def _chat_completions_request(
     return url, headers, json.dumps(body).encode("utf-8")
 
 
+def _truncation_detail(usage: dict[str, Any]) -> str:
+    details = usage.get("completion_tokens_details") or {}
+    reasoning = details.get("reasoning_tokens")
+    if reasoning:
+        return (
+            f"; {reasoning} of {usage.get('completion_tokens')} completion tokens "
+            "went to reasoning, so raise RECITOPIA_LLM_MAX_TOKENS"
+        )
+    return ""
+
+
 def _chat_completions_parse(raw: str) -> Completion:
     parsed = json.loads(raw)
     choices = parsed.get("choices")
     if not choices:
         raise ProviderError("response contained no choices")
+    usage = parsed.get("usage") or {}
+    finish_reason = choices[0].get("finish_reason")
+    if finish_reason in TRUNCATION_REASONS:
+        raise LengthLimitError(
+            "stopped at the token limit before finishing json"
+            + _truncation_detail(usage)
+        )
     message = choices[0].get("message") or {}
     text = message.get("content")
     if not text:
         raise ProviderError("response contained empty content")
-    usage = parsed.get("usage") or {}
     return Completion(
         text=text,
         finish_reason=choices[0].get("finish_reason"),
@@ -244,6 +261,8 @@ def _anthropic_request(
 
 def _anthropic_parse(raw: str) -> Completion:
     parsed = json.loads(raw)
+    if parsed.get("stop_reason") in TRUNCATION_REASONS:
+        raise LengthLimitError("stopped at the token limit before finishing json")
     blocks = parsed.get("content") or []
     text = "".join(
         block.get("text", "") for block in blocks if block.get("type") == "text"
@@ -293,6 +312,8 @@ def _google_parse(raw: str) -> Completion:
     candidates = parsed.get("candidates") or []
     if not candidates:
         raise ProviderError("response contained no candidates")
+    if candidates[0].get("finishReason") in TRUNCATION_REASONS:
+        raise LengthLimitError("stopped at the token limit before finishing json")
     parts = (candidates[0].get("content") or {}).get("parts") or []
     text = "".join(part.get("text", "") for part in parts)
     if not text.strip():

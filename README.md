@@ -156,12 +156,16 @@ RECITOPIA_LLM_PROVIDER=deepseek      DEEPSEEK_API_KEY=
 ```sh
 RECITOPIA_LLM_MODEL=
 RECITOPIA_LLM_BASE_URL=
-RECITOPIA_LLM_MAX_TOKENS=5000
+RECITOPIA_LLM_MAX_TOKENS=16000
 RECITOPIA_LLM_TIMEOUT=90
 RECITOPIA_LLM_ATTEMPTS=3
 RECITOPIA_LLM_HTTP_REFERER=
 RECITOPIA_LLM_APP_TITLE=
 ```
+
+Reasoning models spend the completion budget on reasoning before they emit any
+json, so `RECITOPIA_LLM_MAX_TOKENS` has to cover both. `deepseek-v4-flash` used
+5000 tokens of reasoning on a dense two column page and returned nothing.
 
 ```sh
 RECITOPIA_LLM_COOKBOOK_MAX_TOKENS=16000

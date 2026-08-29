@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import re
@@ -886,6 +887,9 @@ def compact_pages(pages: list[dict[str, Any]], char_budget: int | None = None) -
 def request_model(payload: dict[str, Any]) -> dict[str, Any]:
     raise_if_cancelled()
     config = llm_provider.resolve_config()
+    cookbook_budget = os.getenv("RECITOPIA_LLM_COOKBOOK_MAX_TOKENS")
+    if cookbook_budget:
+        config = dataclasses.replace(config, max_tokens=int(cookbook_budget))
     section = payload.get("section") or {}
     section_id = section.get("id")
     section_title = section.get("title") or section_id or "whole-cookbook"

@@ -50,6 +50,10 @@ class ResolveConfigTest(unittest.TestCase):
         )
         self.assertEqual(config.api_key, "shared")
 
+    def test_default_max_tokens_has_reasoning_headroom(self) -> None:
+        config = lp.resolve_config(base_env("deepseek"))
+        self.assertGreaterEqual(config.max_tokens, 16000)
+
     def test_defaults_per_provider(self) -> None:
         for provider in lp.PROVIDERS:
             config = lp.resolve_config(base_env(provider))
@@ -243,6 +247,36 @@ class TruncationTest(unittest.TestCase):
                     {"content": {"parts": [{"text": "{}"}]}, "finishReason": "MAX_TOKENS"}
                 ]
             }
+        )
+        with self.assertRaises(lp.LengthLimitError):
+            lp.parse_response(config, raw)
+
+    def test_truncation_beats_empty_content(self) -> None:
+        config = lp.resolve_config(base_env("deepseek"))
+        raw = json.dumps(
+            {
+                "choices": [{"message": {"content": ""}, "finish_reason": "length"}],
+                "usage": {
+                    "completion_tokens": 5000,
+                    "completion_tokens_details": {"reasoning_tokens": 5000},
+                },
+            }
+        )
+        with self.assertRaises(lp.LengthLimitError) as ctx:
+            lp.parse_response(config, raw)
+        self.assertIn("reasoning", str(ctx.exception))
+        self.assertIn("RECITOPIA_LLM_MAX_TOKENS", str(ctx.exception))
+
+    def test_anthropic_truncation_beats_empty_content(self) -> None:
+        config = lp.resolve_config(base_env("anthropic"))
+        raw = json.dumps({"content": [], "stop_reason": "max_tokens"})
+        with self.assertRaises(lp.LengthLimitError):
+            lp.parse_response(config, raw)
+
+    def test_google_truncation_beats_empty_content(self) -> None:
+        config = lp.resolve_config(base_env("google"))
+        raw = json.dumps(
+            {"candidates": [{"content": {"parts": []}, "finishReason": "MAX_TOKENS"}]}
         )
         with self.assertRaises(lp.LengthLimitError):
             lp.parse_response(config, raw)
