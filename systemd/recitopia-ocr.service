@@ -1,0 +1,27 @@
+[Unit]
+Description=Recitopia OCR server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=recitopia
+Group=recitopia
+StateDirectory=recitopia
+Environment=RECITOPIA_OCR_HOST=127.0.0.1
+Environment=RECITOPIA_OCR_PORT=8078
+Environment=RECITOPIA_OCR_GPU_PAUSE_UNIT=
+Environment=RECITOPIA_OCR_GPU_RELEASE_DELAY=120
+ExecStart=/var/lib/recitopia/ocr-venv/bin/python /opt/recitopia/tools/ocr/paddle_ocr_server.py
+Restart=on-failure
+RestartSec=10s
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
