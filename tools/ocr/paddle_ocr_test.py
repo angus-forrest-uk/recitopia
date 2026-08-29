@@ -267,3 +267,28 @@ class PaddleOcrLayoutTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PruneRawTest(unittest.TestCase):
+    def test_drops_preprocessor_tensors(self) -> None:
+        raw = [
+            {
+                "rec_texts": ["CORN BREAD"],
+                "rec_polys": [[[0, 0], [1, 0], [1, 1], [0, 1]]],
+                "doc_preprocessor_res": {"output_img": [[0] * 32] * 32},
+            }
+        ]
+        pruned = paddle_ocr._prune_raw(raw)
+        self.assertNotIn("doc_preprocessor_res", pruned[0])
+        self.assertEqual(pruned[0]["rec_texts"], ["CORN BREAD"])
+        self.assertEqual(pruned[0]["rec_polys"], raw[0]["rec_polys"])
+
+    def test_drops_nested_and_all_heavy_keys(self) -> None:
+        raw = {"a": {"img": [1, 2, 3], "keep": 1}, "input_img": [9], "output_img": [9]}
+        pruned = paddle_ocr._prune_raw(raw)
+        self.assertEqual(pruned, {"a": {"keep": 1}})
+
+    def test_leaves_scalars_alone(self) -> None:
+        self.assertEqual(paddle_ocr._prune_raw("text"), "text")
+        self.assertEqual(paddle_ocr._prune_raw(7), 7)
+        self.assertIsNone(paddle_ocr._prune_raw(None))

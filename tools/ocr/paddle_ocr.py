@@ -712,6 +712,34 @@ def load_ocr() -> tuple[Any, str, str]:
     return ocr, api_mode, version
 
 
+HEAVY_RAW_KEYS = (
+    "doc_preprocessor_res",
+    "doc_preprocessor_image",
+    "input_img",
+    "output_img",
+    "img",
+)
+
+
+def _prune_raw(raw_items: Any) -> Any:
+    """Drop PaddleOCR's preprocessed image tensors from the raw payload.
+
+    doc_preprocessor_res alone is ~88 MB per page while every field the layout
+    and review code reads (rec_texts, rec_polys, rec_scores, rec_boxes,
+    dt_polys) totals a few kilobytes. The raw payload is persisted per page, so
+    keeping the tensors costs gigabytes per book and buys nothing.
+    """
+    if isinstance(raw_items, list):
+        return [_prune_raw(item) for item in raw_items]
+    if isinstance(raw_items, dict):
+        return {
+            key: _prune_raw(value)
+            for key, value in raw_items.items()
+            if key not in HEAVY_RAW_KEYS
+        }
+    return raw_items
+
+
 def run_ocr(image_path: Path, ocr: Any | None = None, api_mode: str | None = None, version: str | None = None) -> dict[str, Any]:
     if not image_path.exists():
         raise FileNotFoundError(f"image not found: {image_path}")
@@ -738,7 +766,7 @@ def run_ocr(image_path: Path, ocr: Any | None = None, api_mode: str | None = Non
         "layout": layout,
         "printedPageNumber": printed_page_number,
         "printedPageNumberSide": printed_page_number_side,
-        "raw": raw_items,
+        "raw": _prune_raw(raw_items),
     }
 
 
