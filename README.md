@@ -73,6 +73,12 @@ cargo test
 nix --extra-experimental-features 'nix-command flakes' build .#recitopia-api-rust
 ```
 
+On NixOS `cargo build` fails with `linker \`cc\` not found`; use the flake.
+
+The database schema is not created by this repo. `/api/health` answers on an
+empty DuckDB, but `/api/catalogue` and the import routes return 503 until the
+store is populated.
+
 ```nix
 services.recitopia-api = {
   enable = true;
